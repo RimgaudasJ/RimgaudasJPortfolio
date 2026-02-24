@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog Post</title>
+  <style>
+    :root { --fg:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#ffffff; --soft:#f8fafc; --accent:#2563eb; }
+    html,body { margin:0; background:var(--soft); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; }
+    header.site { background:#fff; border-bottom:1px solid var(--line); }
+    .wrap { max-width:980px; margin:0 auto; padding:16px; }
+    .topbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .topbar a { color:var(--accent); text-decoration:none; }
+    h1.title { margin:12px 0 4px; font-size:28px; }
+    .meta { color:var(--muted); font-size:13px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .tag { font-size:12px; padding:2px 8px; border:1px solid var(--line); border-radius:999px; background:#fff; color:#0f172a; }
+    main { padding:20px 0 48px; }
+    article { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+    article img { max-width:100%; height:auto; border-radius:8px; display:block; }
+    article figure { margin:16px 0; }
+    article figcaption { color:var(--muted); font-size:12px; margin-top:6px; }
+    .body p { line-height:1.7; margin:12px 0; }
+    .body h2 { margin:18px 0 10px; font-size:20px; }
+    .body ul { padding-left:22px; }
+    .muted { color:var(--muted); }
+    .tools { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    input[type="text"], input[type="url"], .btn { font-size:14px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff; }
+    .btn { cursor:pointer; background:#fff; }
+    .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .drop { border:2px dashed var(--line); border-radius:12px; padding:14px; text-align:center; color:var(--muted); }
+    footer { border-top:1px solid var(--line); background:#fff; }
+    footer .wrap { padding:16px; font-size:13px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <div class="topbar">
+        <a href="website.html">← Home</a>
+        <div class="tools">
+          <input id="openFile" type="file" accept="application/json" />
+          <input id="srcUrl" type="url" placeholder="https://example.com/post.json" style="min-width:280px" />
+          <button id="loadUrl" class="btn">Load URL</button>
+        </div>
+      </div>
+      <h1 class="title" id="postTitle">Blog</h1>
+      <div class="meta">
+        <span id="postDate" class="muted">—</span>
+        <div id="postTags" class="tags"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div id="drop" class="drop">Drop a blog JSON here or use the controls above</div>
+      <article id="article" style="display:none">
+        <div id="body" class="body"></div>
+        <div id="images"></div>
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">&copy; 2025 Rimgaudas Jurkaitis</div>
+  </footer>
+
+  <script>
+    (function(){
+      const $ = s => document.querySelector(s);
+      const openFile = $('#openFile');
+      const srcUrl = $('#srcUrl');
+      const loadUrlBtn = $('#loadUrl');
+      const drop = $('#drop');
+      const article = $('#article');
+      const bodyEl = $('#body');
+      const imgsEl = $('#images');
+      const titleEl = $('#postTitle');
+      const dateEl = $('#postDate');
+      const tagsEl = $('#postTags');
+
+      // Load from URL param ?src=
+      const params = new URLSearchParams(location.search);
+      const src = params.get('src');
+      if (src) {
+        srcUrl.value = src;
+        loadFromUrl(src).catch(err => showError('Failed to load: ' + err));
+      }
+
+      openFile.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        try {
+          const model = await readJsonFile(f);
+          render(model);
+        } catch (err) { showError('Invalid JSON file'); }
+        e.target.value = '';
+      });
+
+      loadUrlBtn.addEventListener('click', async ()=>{
+        if (!srcUrl.value) { showError('Enter a JSON URL'); return; }
+        try {
+          const model = await fetchJson(srcUrl.value);
+          render(model);
+        } catch (err) { showError('Could not fetch JSON'); }
+      });
+
+      ;['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.style.background = '#eef2ff'; }));
+      ;['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.style.background = ''; }));
+      drop.addEventListener('drop', async (e)=>{
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          try { render(await readJsonFile(f)); } catch { showError('Invalid JSON file'); }
+        }
+      });
+
+      function showError(msg){
+        drop.textContent = msg;
+      }
+
+      async function readJsonFile(file){
+        const text = await file.text();
+        return JSON.parse(text);
+      }
+
+      async function fetchJson(url){
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        return res.json();
+      }
+
+      function render(model){
+        // Expect schema from blog-editor.html
+        // { id, title, slug, createdUtc, tags, body, images:[{name, alt, dataUrl}] }
+        titleEl.textContent = model.title || 'Untitled';
+        document.title = titleEl.textContent + ' - Blog';
+        dateEl.textContent = model.createdUtc ? new Date(model.createdUtc).toLocaleString() : '';
+        tagsEl.innerHTML = '';
+        (model.tags || []).forEach(t => {
+          const s = document.createElement('span'); s.className = 'tag'; s.textContent = t; tagsEl.appendChild(s);
+        });
+
+        bodyEl.innerHTML = markdownToHtml(String(model.body || ''));
+
+        imgsEl.innerHTML = '';
+        (model.images || []).forEach(img => {
+          const fig = document.createElement('figure');
+          const i = document.createElement('img');
+          i.src = img.dataUrl; i.alt = img.alt || '';
+          fig.appendChild(i);
+          if (img.alt) { const cap = document.createElement('figcaption'); cap.textContent = img.alt; fig.appendChild(cap); }
+          imgsEl.appendChild(fig);
+        });
+
+        drop.style.display = 'none';
+        article.style.display = '';
+      }
+
+      function escapeHtml(s){
+        return String(s).replace(/[&<>"']/g, m => (
+          m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;'
+        ));
+      }
+
+      function markdownToHtml(md){
+        // Minimal, safe-ish conversion for our editor’s output
+        const esc = escapeHtml(md);
+        // Links [text](url)
+        let html = esc.replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, (m, t, u) => `<a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a>`);
+        // Bold **text** and italic _text_
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>');
+        html = html.replace(/_(.+?)_/g, '<em>$1<\/em>');
+        // Headings: lines starting with '# ' or '## '
+        html = html.replace(/^##\s+(.+)$/gm, '<h2>$1<\/h2>');
+        html = html.replace(/^#\s+(.+)$/gm, '<h2>$1<\/h2>');
+        // Lists: lines starting with '- '
+        html = html.replace(/^(?:- .+(?:\r?\n|$))+?/gm, block => {
+          const items = block.trim().split(/\r?\n/).map(l => l.replace(/^-\s+/, '')).map(t => `<li>${t}<\/li>`).join('');
+          return `<ul>${items}<\/ul>`;
+        });
+        // Paragraphs: split by blank lines
+        html = html
+          .split(/\n{2,}/)
+          .map(chunk => /<\/?(h2|ul|li|p|a|strong|em)/.test(chunk) ? chunk : `<p>${chunk.replace(/\n/g,'<br>')}<\/p>`)
+          .join('\n');
+        return html;
+      }
+    })();
+  </script>
+</body>
+</html>

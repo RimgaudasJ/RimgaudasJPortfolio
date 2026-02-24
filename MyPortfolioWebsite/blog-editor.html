@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blog JSON Builder</title>
+<style>
+  :root { --fg:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#ffffff; --accent:#2563eb; --soft:#f8fafc;}
+  html,body { margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; color:var(--fg); background:var(--soft);}
+  .wrap { max-width:1100px; margin:32px auto; padding:0 16px;}
+  h1 { margin:0 0 8px; font-size:28px;}
+  h2 { margin:24px 0 8px; font-size:18px; color:var(--muted);}
+  .grid { display:grid; gap:16px; grid-template-columns: 1fr 1fr;}
+  @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+  .card { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:16px;}
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px;}
+  input[type="text"], textarea { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:14px;}
+  textarea { min-height:180px; resize:vertical; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 12px;}
+  .btn { appearance:none; border:1px solid var(--line); background:#fff; color:var(--fg); padding:8px 12px; border-radius:8px; cursor:pointer; font-size:14px;}
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn.ghost { background:transparent; }
+  .btn:disabled { opacity:.6; cursor:not-allowed; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .muted { color:var(--muted); font-size:12px;}
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:12px; background:#0b1220; color:#e2e8f0; padding:12px; border-radius:8px; white-space:pre-wrap; word-break:break-word; max-height:420px; overflow:auto; }
+  .images { border:1px dashed var(--line); padding:12px; border-radius:8px; background:#fff;}
+  .imglist { display:grid; gap:8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-top:12px;}
+  .imgitem { border:1px solid var(--line); border-radius:8px; padding:8px; background:#fff;}
+  .imgitem img { max-width:100%; height:auto; display:block; border-radius:6px; }
+  .tagline { color:var(--muted); margin-top:2px; }
+  .keyval { display:grid; grid-template-columns: 160px 1fr; gap:8px 12px; align-items:center; }
+  .kbd { font-family:ui-monospace,Consolas,Monaco,monospace; font-size:12px; background:#eef2ff; color:#1e40af; padding:2px 6px; border-radius:6px; border:1px solid #c7d2fe;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Blog JSON Builder</h1>
+    <p class="tagline">Build a JSON payload for a blog post. Images are embedded as base64. Preview updates live.</p>
+
+    <div class="grid">
+      <!-- LEFT: inputs -->
+      <div class="card">
+        <div class="keyval">
+          <label for="subject">Subject (used as Title)</label>
+          <input id="subject" type="text" placeholder="e.g., Building a JSON-powered blog editor" />
+
+          <label for="tags">Tags (comma-separated)</label>
+          <input id="tags" type="text" placeholder="e.g., json, editor, web, tutorial" />
+        </div>
+
+        <h2>Body</h2>
+        <div class="toolbar">
+          <button class="btn" data-cmd="bold"><strong>B</strong></button>
+          <button class="btn" data-cmd="italic"><em>I</em></button>
+          <button class="btn" data-cmd="underline"><u>U</u></button>
+          <button class="btn" data-insert="# ">H2</button>
+          <button class="btn" data-insert="\n\n">P</button>
+          <button class="btn" data-insert="- ">• List</button>
+          <button class="btn" data-link>Link</button>
+          <button class="btn ghost" id="clearFmt">Clear formatting</button>
+        </div>
+        <textarea id="body" placeholder="Write your post in Markdown or plain text..."></textarea>
+
+        <h2>Images</h2>
+        <div class="images">
+          <div class="row">
+            <input id="imageFiles" type="file" accept="image/*" multiple />
+            <span class="muted">Add one or more images. They’ll be embedded as base64 data URLs.</span>
+          </div>
+          <div id="imageList" class="imglist"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: preview + actions -->
+      <div class="card">
+        <h2>JSON Preview</h2>
+
+        <div class="keyval" style="margin-bottom:12px">
+          <label>Generated ID</label>
+          <div id="genId" class="muted">—</div>
+          <label>Filename</label>
+          <div id="fileName" class="muted">—</div>
+        </div>
+
+        <div id="jsonPreview" class="mono">{}</div>
+
+        <div class="row" style="margin-top:12px">
+          <button id="refreshBtn" class="btn">Refresh Preview</button>
+          <button id="copyBtn" class="btn">Copy JSON</button>
+          <button id="downloadBtn" class="btn">Download blog.json</button>
+          <button id="saveBtn" class="btn primary" title="Use File System Access API if available">Save to folder</button>
+        </div>
+        <div class="muted" style="margin-top:8px">
+          Tip: <span class="kbd">Save to folder</span> uses the File System Access API (Chromium browsers). Others will fall back to a normal download.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Utilities ----------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  function slugify(str){
+    return String(str || "")
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g,'') // strip diacritics
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g,'-')
+      .replace(/^-+|-+$/g,'')
+      .slice(0,80) || 'post';
+  }
+
+  function uid(){
+    // short unique id: yyyymmdd-hhmmss-rand
+    const d = new Date();
+    const pad = (n)=>String(n).padStart(2,'0');
+    const stamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const rand = Math.random().toString(36).slice(2,8);
+    return `${stamp}-${rand}`;
+  }
+
+  function pretty(obj){
+    return JSON.stringify(obj, null, 2);
+  }
+
+  function toTags(str){
+    return (str || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  // ---------- State ----------
+  const state = {
+    id: uid(),
+    images: [] // { name, dataUrl, alt }
+  };
+
+  // ---------- DOM ----------
+  const elSubject = $('#subject');
+  const elTags = $('#tags');
+  const elBody = $('#body');
+  const elImgFiles = $('#imageFiles');
+  const elImgList = $('#imageList');
+  const elPreview = $('#jsonPreview');
+  const elGenId = $('#genId');
+  const elFileName = $('#fileName');
+  const btnRefresh = $('#refreshBtn');
+  const btnCopy = $('#copyBtn');
+  const btnDownload = $('#downloadBtn');
+  const btnSave = $('#saveBtn');
+
+  // Toolbar: simple formatting helpers for the textarea
+  $$('.toolbar .btn').forEach(btn => {
+    if (btn.dataset.cmd) {
+      btn.addEventListener('click', () => applyFormat(btn.dataset.cmd));
+    } else if (btn.dataset.insert) {
+      btn.addEventListener('click', () => insertAtCursor(elBody, btn.dataset.insert));
+    } else if (btn.hasAttribute('data-link')) {
+      btn.addEventListener('click', () => {
+        const url = prompt('Enter URL (https://...)');
+        if (!url) return;
+        const sel = getSelectionInTextarea(elBody);
+        replaceSelection(elBody, `[${sel || 'link'}](${url})`);
+      });
+    }
+  });
+  $('#clearFmt').addEventListener('click', ()=>{
+    if (!elBody.value) return;
+    if (!confirm('Clear the body content?')) return;
+    elBody.value = '';
+    render();
+  });
+
+  function applyFormat(cmd){
+    // Works on textarea; simple wrappers
+    const sel = getSelectionInTextarea(elBody);
+    let wrapped = sel;
+    if (cmd === 'bold') wrapped = `**${sel || 'bold'}**`;
+    if (cmd === 'italic') wrapped = `_${sel || 'italic'}_`;
+    if (cmd === 'underline') wrapped = `<u>${sel || 'underline'}</u>`;
+    replaceSelection(elBody, wrapped);
+  }
+
+  function getSelectionInTextarea(textarea){
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    return textarea.value.slice(start, end);
+  }
+
+  function replaceSelection(textarea, text){
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+    textarea.value = before + text + after;
+    // move caret after inserted text
+    const newPos = before.length + text.length;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.focus();
+    render();
+  }
+
+  function insertAtCursor(textarea, snippet){
+    replaceSelection(textarea, snippet);
+  }
+
+  // ---------- Image handling ----------
+  elImgFiles.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    for (const f of files) {
+      const dataUrl = await fileToDataURL(f);
+      state.images.push({ name: f.name, dataUrl, alt: '' });
+    }
+    e.target.value = ''; // allow re-adding same file later
+    renderImages();
+    render();
+  });
+
+  function fileToDataURL(file){
+    return new Promise((resolve, reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function renderImages(){
+    elImgList.innerHTML = '';
+    state.images.forEach((img, idx)=>{
+      const div = document.createElement('div');
+      div.className = 'imgitem';
+      div.innerHTML = `
+        <img src="${img.dataUrl}" alt="${escapeHtml(img.alt)}" />
+        <div style="margin-top:6px">
+          <label>Alt text</label>
+          <input type="text" value="${escapeHtml(img.alt)}" data-idx="${idx}" class="altInput" placeholder="Describe the image"/>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <span class="muted" title="${escapeHtml(img.name)}">${truncateMiddle(img.name, 28)}</span>
+          <button class="btn ghost" data-remove="${idx}">Remove</button>
+        </div>
+      `;
+      elImgList.appendChild(div);
+    });
+
+    // bind alt + remove
+    $$('.altInput').forEach(input=>{
+      input.addEventListener('input', (e)=>{
+        const i = Number(e.target.dataset.idx);
+        state.images[i].alt = e.target.value;
+        render(); // keep preview live
+      });
+    });
+    $$('.imgitem [data-remove]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        const i = Number(btn.getAttribute('data-remove'));
+        state.images.splice(i,1);
+        renderImages();
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(s=''){
+    return s.replace(/[&<>\"']/g, m => (
+      m === '&' ? '&amp;' :
+      m === '<' ? '&lt;' :
+      m === '>' ? '&gt;' :
+      m === '"' ? '&quot;' :
+      '&#39;'
+    ));
+  }
+  function truncateMiddle(s, max){
+    if (s.length <= max) return s;
+    const half = Math.floor((max-3)/2);
+    return s.slice(0,half) + '...' + s.slice(-half);
+  }
+
+  // ---------- JSON model ----------
+  function buildModel(){
+    const subject = elSubject.value.trim();
+    const tags = toTags(elTags.value);
+    const body = elBody.value;
+    const id = state.id;
+    const slug = slugify(subject);
+    const fileName = `${slug || 'post'}-${id}.json`;
+
+    const images = state.images.map((img)=>({
+      name: img.name,
+      alt: img.alt || '',
+      dataUrl: img.dataUrl
+    }));
+
+    // You can adjust the schema here for your CMS
+    const model = {
+      id,
+      title: subject || 'Untitled',
+      slug,
+      createdUtc: new Date().toISOString(),
+      tags,
+      body,              // treat as Markdown/plain text
+      images             // embedded base64 data URLs
+    };
+
+    return { model, fileName };
+  }
+
+  function render(){
+    const { model, fileName } = buildModel();
+    elPreview.textContent = pretty(model);
+    elGenId.textContent = model.id;
+    elFileName.textContent = fileName;
+  }
+
+  // ---------- Actions ----------
+  btnRefresh.addEventListener('click', render);
+
+  // auto-render on changes
+  [elSubject, elTags, elBody].forEach(el => el.addEventListener('input', render));
+
+  btnCopy.addEventListener('click', async ()=>{
+    const { model } = buildModel();
+    const text = pretty(model);
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('JSON copied to clipboard');
+    } catch (e) {
+      // Fallback
+      copyFallback(text);
+      toast('Copied (fallback)');
+    }
+  });
+
+  btnDownload.addEventListener('click', ()=>{
+    const { model, fileName } = buildModel();
+    downloadText(pretty(model), fileName, 'application/json');
+  });
+
+  btnSave.addEventListener('click', async ()=>{
+    const { model, fileName } = buildModel();
+    const blob = new Blob([pretty(model)], { type: 'application/json' });
+
+    // Use File System Access API if available
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] }}]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        toast('Saved to chosen folder');
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // user canceled
+        console.warn('Save picker failed, falling back to download', err);
+        // fall back below
+      }
+    }
+    // Fallback to a normal download
+    downloadText(pretty(model), fileName, 'application/json');
+  });
+
+  // helpers for actions
+  function downloadText(text, fileName, mime='text/plain'){
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'file.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+
+  function copyFallback(text){
+    const ta = document.createElement('textarea');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+
+  let toastTimer;
+  function toast(msg){
+    clearTimeout(toastTimer);
+    let t = $('#toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      Object.assign(t.style, {
+        position:'fixed', left:'50%', bottom:'24px', transform:'translateX(-50%)',
+        background:'#0b1220', color:'#e2e8f0', padding:'10px 14px', borderRadius:'10px',
+        border:'1px solid #1e293b', fontSize:'13px', zIndex:9999, boxShadow:'0 6px 20px rgba(2,6,23,.4)'
+      });
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    toastTimer = setTimeout(()=>{ t.style.opacity = '0'; }, 1600);
+  }
+
+  // Initial render once DOM is ready
+  render();
+
+})();
+</script>
+</body>
+</html>
