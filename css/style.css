@@ -214,8 +214,8 @@ section h2::before {
   position: absolute;
   top: 1em;
   right: 1em;
-  width: 88px;
-  height: 88px;
+  width: 10%;
+  height: 20%;
   border-radius: 10px;
   overflow: hidden;
   border: 1.5px solid var(--border-light);
