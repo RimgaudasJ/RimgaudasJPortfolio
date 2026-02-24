@@ -6,6 +6,7 @@
   <title>Blog Post</title>
   <style>
     :root { --fg:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#ffffff; --soft:#f8fafc; --accent:#2563eb; }
+    :root[data-theme="dark"] { --fg:#e2e8f0; --muted:#94a3b8; --line:#334155; --bg:#0f172a; --soft:#020617; --accent:#60a5fa; }
     html,body { margin:0; background:var(--soft); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; }
     header.site { background:#fff; border-bottom:1px solid var(--line); }
     .wrap { max-width:980px; margin:0 auto; padding:16px; }
@@ -188,5 +189,6 @@
       }
     })();
   </script>
+  <script src="js/theme-toggle.js"></script>
 </body>
 </html>

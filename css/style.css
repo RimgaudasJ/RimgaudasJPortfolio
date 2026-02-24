@@ -24,8 +24,27 @@
   --transition: all 0.3s ease;
 }
 
+:root[data-theme="dark"] {
+  --bg-main: linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%);
+  --bg-header: linear-gradient(135deg, #1e293b 0%, #1f2937 50%, #1e293b 100%);
+  --bg-card: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+
+  --accent-primary: #60a5fa;
+  --accent-secondary: #38bdf8;
+  --accent-light: #86efac;
+
+  --text-main: #e2e8f0;
+  --text-dark: #dbeafe;
+  --text-soft: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --border-light: #334155;
+  --shadow-soft: 0 6px 20px rgba(2, 6, 23, 0.45);
+  --shadow-strong: 0 14px 40px rgba(2, 6, 23, 0.6);
+}
+
 * {
-  margin: 0;
+  margin: 16px;
   padding: 0;
   box-sizing: border-box;
 }
@@ -39,6 +58,10 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+:root[data-theme="dark"] body {
+  color-scheme: dark;
 }
 
 /* =========================
@@ -310,7 +333,13 @@ section h2::before {
   border-radius: 8px;
   border: 1.5px solid var(--border-light);
   background: #faf9f7;
+  color: var(--text-main);
   transition: var(--transition);
+}
+
+:root[data-theme="dark"] .form-group input,
+:root[data-theme="dark"] .form-group textarea {
+  background: rgba(2, 6, 23, 0.55);
 }
 
 .form-group input:focus,
@@ -355,6 +384,37 @@ body > main,
 body > footer {
   position: relative;
   z-index: 1;
+  width: min(1200px, calc(100% - 2rem));
+  margin-left: auto;
+  margin-right: auto;
+  backdrop-filter: blur(6px);
+}
+
+body > header,
+body > main {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1.5px solid var(--border-light);
+}
+
+:root[data-theme="dark"] body > header,
+:root[data-theme="dark"] body > main {
+  background: rgba(15, 23, 42, 0.88);
+}
+
+body > header {
+  margin-top: 1rem;
+  border-radius: var(--radius);
+}
+
+body > main {
+  margin-top: 1rem;
+  border-radius: var(--radius);
+}
+
+body > footer {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
 }
 
 /* =========================
@@ -383,5 +443,16 @@ body > footer {
   .projects-grid,
   .blog-grid {
     grid-template-columns: 1fr;
+  }
+
+  .project-content {
+    padding-right: 0;
+    padding-top: 100px;
+  }
+
+  body > header,
+  body > main,
+  body > footer {
+    width: calc(100% - 1rem);
   }
 }
