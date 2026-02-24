@@ -44,7 +44,7 @@
 }
 
 * {
-  margin: 16px;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
@@ -62,6 +62,10 @@ body {
 
 :root[data-theme="dark"] body {
   color-scheme: dark;
+}
+
+.about-content{
+    margin: 16px;
 }
 
 /* =========================
