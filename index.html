@@ -22,9 +22,21 @@
   </header>
 
   <main>
-    <section class="projects-section">
-      <h2>Projects</h2>
-      <div class="projects-grid">
+    <div class="home-layout">
+      <aside class="github-activity-card" data-github-username="rimgaudasj">
+        <h2>GitHub Activity</h2>
+        <div class="github-calendar" id="github-calendar" aria-live="polite">
+          <p>Loading activity calendar...</p>
+        </div>
+        <h3>Recent Public Pushes</h3>
+        <ul class="github-push-list" id="github-push-list" aria-live="polite">
+          <li>Loading recent pushes...</li>
+        </ul>
+      </aside>
+
+      <section class="projects-section">
+        <h2>Projects</h2>
+        <div class="projects-grid">
         <article class="project-card">
           <div class="project-image">
             <img src="images/lastofZIcon.png" alt="The Last of Z image">
@@ -84,8 +96,9 @@
             </a>
           </div>
         </article>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   </main>
 
   <footer>
@@ -94,6 +107,7 @@
 
   <script src="js/button.js"></script>
   <script src="js/theme-toggle.js"></script>
+  <script src="js/github-activity.js"></script>
   <canvas id="matrix-canvas" class="matrix-canvas"></canvas>
   <script src="js/matrix.js"></script>
 </body>
