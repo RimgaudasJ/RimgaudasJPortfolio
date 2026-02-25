@@ -1,5 +1,4 @@
 (function () {
-  const RECENT_DAYS = 28;
   const MAX_PUSHES = 6;
 
   function formatDate(dateString) {
@@ -8,31 +7,6 @@
       month: 'short',
       day: 'numeric'
     });
-  }
-
-  function createCalendar(daysContainer, pushEvents) {
-    const dailyCounts = new Map();
-
-    pushEvents.forEach((event) => {
-      const dayKey = new Date(event.created_at).toISOString().slice(0, 10);
-      dailyCounts.set(dayKey, (dailyCounts.get(dayKey) || 0) + 1);
-    });
-
-    const today = new Date();
-    daysContainer.innerHTML = '';
-
-    for (let index = RECENT_DAYS - 1; index >= 0; index -= 1) {
-      const day = new Date(today);
-      day.setDate(today.getDate() - index);
-      const dayKey = day.toISOString().slice(0, 10);
-      const count = dailyCounts.get(dayKey) || 0;
-
-      const square = document.createElement('span');
-      square.className = 'calendar-day';
-      square.dataset.level = count >= 3 ? '3' : String(count);
-      square.title = `${day.toDateString()} • ${count} public push${count === 1 ? '' : 'es'}`;
-      daysContainer.appendChild(square);
-    }
   }
 
   async function getRepoLanguage(repoFullName, languageCache) {
@@ -59,16 +33,14 @@
 
   async function loadGithubActivity() {
     const card = document.querySelector('.github-activity-card');
-    const calendarContainer = document.getElementById('github-calendar');
     const pushList = document.getElementById('github-push-list');
 
-    if (!card || !calendarContainer || !pushList) {
+    if (!card || !pushList) {
       return;
     }
 
     const username = card.dataset.githubUsername;
     if (!username) {
-      calendarContainer.textContent = 'GitHub username is not configured.';
       pushList.innerHTML = '<li>Set data-github-username on the activity card.</li>';
       return;
     }
@@ -83,12 +55,9 @@
       const pushEvents = events.filter((event) => event.type === 'PushEvent');
 
       if (pushEvents.length === 0) {
-        calendarContainer.textContent = 'No recent public pushes found.';
         pushList.innerHTML = '<li>No public push events to display yet.</li>';
         return;
       }
-
-      createCalendar(calendarContainer, pushEvents);
 
       const recentPushes = pushEvents.slice(0, MAX_PUSHES);
       const repoNames = [...new Set(recentPushes.map((event) => event.repo.name))];
@@ -125,7 +94,6 @@
         pushList.appendChild(listItem);
       });
     } catch (_error) {
-      calendarContainer.textContent = 'Could not load GitHub activity.';
       pushList.innerHTML = '<li>Check your username or GitHub API rate limit and try again.</li>';
     }
   }
