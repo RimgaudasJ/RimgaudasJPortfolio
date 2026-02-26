@@ -25,13 +25,29 @@
     </div>
   </header>
 
-  <aside class="github-activity-card" data-github-username="rimgaudasj">
-    <h2>GitHub Activity</h2>
-    <h3>Recent Public Pushes</h3>
-    <ul class="github-push-list" id="github-push-list" aria-live="polite">
-      <li>Loading recent pushes...</li>
-    </ul>
-  </aside>
+  <div class="left-sidebar">
+    <aside class="github-activity-card" data-github-username="rimgaudasj">
+      <h2>GitHub Activity</h2>
+      <h3>Recent Public Pushes</h3>
+      <ul class="github-push-list" id="github-push-list" aria-live="polite">
+        <li>Loading recent pushes...</li>
+      </ul>
+    </aside>
+
+    <aside class="project-filters" id="project-filters">
+      <h3>Sort Projects</h3>
+      <div class="sort-control">
+        <label for="project-sort">Order</label>
+        <select id="project-sort">
+          <option value="date-desc">Date Added (Newest)</option>
+          <option value="date-asc">Date Added (Oldest)</option>
+          <option value="title-asc">A-Z</option>
+        </select>
+      </div>
+      <h3>Filter By Tags</h3>
+      <div class="filter-tags" id="project-filter-tags" aria-live="polite"></div>
+    </aside>
+  </div>
 
   <main>
     <div class="home-layout">
@@ -145,19 +161,6 @@
           </div>
         </article>
         </div>
-        <aside class="project-filters" id="project-filters">
-          <h3>Sort Projects</h3>
-          <div class="sort-control">
-            <label for="project-sort">Order</label>
-            <select id="project-sort">
-              <option value="date-desc">Date Added (Newest)</option>
-              <option value="date-asc">Date Added (Oldest)</option>
-              <option value="title-asc">A-Z</option>
-            </select>
-          </div>
-          <h3>Filter By Tags</h3>
-          <div class="filter-tags" id="project-filter-tags" aria-live="polite"></div>
-        </aside>
       </div>
       </section>
     </div>
