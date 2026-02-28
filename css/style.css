@@ -22,6 +22,10 @@
 
   --radius: 12px;
   --transition: all 0.3s ease;
+
+  --sidebar-gap: 1rem;
+  --sidebar-width: clamp(200px, 20vw, 280px);
+  --sidebar-space: calc(var(--sidebar-width) + var(--sidebar-gap));
 }
 
 :root[data-theme="dark"] {
@@ -307,7 +311,7 @@ section h2::before {
 /* Grid Layouts */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15%, 75%));
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   justify-content: center;
   gap: 2.5em;
 }
@@ -422,14 +426,15 @@ section h2::before {
 ========================= */
 
 .left-sidebar {
-  position: fixed;
+  position: absolute;
   top: 1rem;
-  left: 1rem;
-  width: clamp(200px, 20vw, 280px);
+  left: auto;
+  width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  z-index: 140;
+  z-index: 10;
+  align-self: start;
 }
 
 .github-activity-card {
@@ -437,11 +442,11 @@ section h2::before {
   border: 1px solid var(--border-light);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
-  padding: 1em;
+  padding: clamp(0.8em, 1vw, 1em);
   position: relative;
   top: auto;
   width: 100%;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 240px);
   overflow: auto;
   margin: 0;
   transform-origin: left top;
@@ -464,14 +469,14 @@ section h2::before {
 }
 
 .github-activity-card h2 {
-  font-size: 2em;
+  font-size: clamp(1.2rem, 1.5vw, 2rem);
   border-bottom: 2px solid var(--accent-primary);
   padding-bottom: 0.5em;
 }
 
 .github-activity-card h3 {
   margin-top: 0.5em;
-  font-size: 1.2em;
+  font-size: clamp(0.95rem, 1.05vw, 1.2rem);
 }
 
 .github-push-list {
@@ -482,7 +487,7 @@ section h2::before {
 }
 
 .github-push-list li {
-  font-size: 0.92em;
+  font-size: clamp(0.8rem, 0.85vw, 0.92em);
   color: var(--text-main);
   border-left: 3px solid var(--accent-primary);
   padding-left: 0.6em;
@@ -627,12 +632,42 @@ body > footer {
   backdrop-filter: blur(6px);
 }
 
-body:has(.left-sidebar) > header,
-body:has(.left-sidebar) > main,
+body:has(.left-sidebar) {
+  display: grid;
+  grid-template-columns: minmax(200px, var(--sidebar-width)) minmax(0, 1200px);
+  grid-template-areas:
+    "header header"
+    "sidebar main"
+    "footer footer";
+  justify-content: center;
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+body:has(.left-sidebar) > header {
+  grid-area: header;
+  width: min(calc(1200px + var(--sidebar-space)), calc(100vw - 2rem));
+  margin: 0 auto;
+}
+
+body:has(.left-sidebar) > .left-sidebar {
+  grid-area: sidebar;
+  width: 100%;
+  max-width: var(--sidebar-width);
+  margin: 0;
+}
+
+body:has(.left-sidebar) > main {
+  grid-area: main;
+  width: min(1200px, 100%);
+  margin: 0;
+}
+
 body:has(.left-sidebar) > footer {
-  width: min(1200px, calc(100% - 2rem - clamp(220px, 24vw, 340px)));
-  margin-left: calc(1rem + clamp(220px, 24vw, 340px));
-  margin-right: 1rem;
+  grid-area: footer;
+  width: min(calc(1200px + var(--sidebar-space)), calc(100vw - 2rem));
+  margin: 0 auto;
 }
 
 body > header,
@@ -681,10 +716,19 @@ body > footer {
 ========================= */
 
 @media (max-width: 1200px) {
-  .left-sidebar {
+  body:has(.left-sidebar) {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  body:has(.left-sidebar) > .left-sidebar {
     position: static;
     width: min(1200px, calc(100% - 2rem));
     margin: 1rem auto 0;
+    max-width: none;
+    align-self: stretch;
   }
 
   .github-activity-card {
@@ -731,10 +775,12 @@ body > footer {
     grid-template-columns: 1fr;
   }
 
-  .left-sidebar {
+  body:has(.left-sidebar) > .left-sidebar {
     position: static;
     width: calc(100% - 1rem);
     margin: 1rem auto 0;
+    max-width: none;
+    align-self: stretch;
   }
 
   .github-activity-card {
