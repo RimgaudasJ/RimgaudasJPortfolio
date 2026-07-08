@@ -68,6 +68,7 @@
       pushList.innerHTML = '';
       recentPushes.forEach((event) => {
         const listItem = document.createElement('li');
+        listItem.className = 'timeline-item';
         const latestCommitSha = event.payload && event.payload.head ? event.payload.head : null;
         const repoUrl = `https://github.com/${event.repo.name}`;
         const commitUrl = latestCommitSha
@@ -81,6 +82,10 @@
         repoName.rel = 'noopener noreferrer';
         repoName.textContent = event.repo.name;
 
+        const action = document.createElement('span');
+        action.className = 'event-action';
+        action.textContent = 'Pushed to';
+
         const meta = document.createElement('a');
         meta.className = 'meta';
         meta.href = commitUrl;
@@ -88,6 +93,7 @@
         meta.rel = 'noopener noreferrer';
         meta.textContent = `${languageCache.get(event.repo.name) || 'Unknown'} • ${formatDate(event.created_at)}`;
 
+        listItem.appendChild(action);
         listItem.appendChild(repoName);
         listItem.appendChild(meta);
 

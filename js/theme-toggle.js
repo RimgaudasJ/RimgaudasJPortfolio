@@ -24,27 +24,30 @@
     style.textContent = `
       .theme-toggle-btn {
         position: fixed;
-        right: 1rem;
-        bottom: 1rem;
+        right: 1.2rem;
+        bottom: 1.2rem;
         z-index: 1100;
-        padding: 0.65rem 1rem;
-        border-radius: 10px;
-        border: 1.5px solid rgba(90, 143, 212, 0.45);
-        background: rgba(255, 255, 255, 0.88);
-        color: #2c3e5f;
-        font-weight: 700;
-        font-family: 'Segoe UI', 'Roboto', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 0.55rem 0.9rem;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(16, 25, 41, 0.72);
+        color: #e2e8f0;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        font-family: 'Inter', 'SF Pro Display', 'Segoe UI', sans-serif;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
-        backdrop-filter: blur(6px);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(10px);
       }
       .theme-toggle-btn:hover {
         transform: translateY(-2px);
+        border-color: rgba(79, 163, 255, 0.68);
+        box-shadow: 0 0 18px rgba(79, 163, 255, 0.25);
       }
-      :root[data-theme='dark'] .theme-toggle-btn {
-        background: rgba(15, 23, 42, 0.9);
-        color: #e2e8f0;
-        border-color: rgba(148, 163, 184, 0.45);
+      :root[data-theme='light'] .theme-toggle-btn {
+        background: rgba(230, 238, 250, 0.9);
+        color: #112038;
+        border-color: rgba(17, 32, 56, 0.15);
       }
     `;
     document.head.appendChild(style);
