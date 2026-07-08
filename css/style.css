@@ -709,6 +709,183 @@ footer {
 }
 
 /* =========================
+   TIMELINE / EXPERIENCE
+========================= */
+
+.experience-section {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0.15rem 0;
+}
+
+.timeline {
+  position: relative;
+  padding: 2rem 0 1rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent-muted), var(--accent-primary), var(--accent-soft));
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.timeline-card {
+  position: relative;
+  width: calc(50% - 2rem);
+  margin-bottom: 4rem;
+}
+
+.timeline-card--left {
+  margin-right: auto;
+  padding-right: 1.5rem;
+}
+
+.timeline-card--right {
+  margin-left: auto;
+  padding-left: 1.5rem;
+}
+
+.timeline-card__dot {
+  position: absolute;
+  top: 1.5rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--bg-mid);
+  box-shadow: 0 0 12px rgba(79, 163, 255, 0.45);
+  z-index: 2;
+}
+
+.timeline-card--left .timeline-card__dot {
+  right: -1.65rem;
+}
+
+.timeline-card--right .timeline-card__dot {
+  left: -1.65rem;
+}
+
+.timeline-card__inner {
+  background: var(--bg-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  padding: 1.25rem;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-card__inner:hover {
+  transform: translateY(-4px);
+  border-color: rgba(79, 163, 255, 0.4);
+  box-shadow: var(--shadow-strong);
+}
+
+.timeline-card__company {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-soft);
+  margin-bottom: 0.2rem;
+}
+
+.timeline-card__position {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.timeline-card__date {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.7rem;
+}
+
+.timeline-card__summary {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.timeline-card__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.timeline-card__skills .tag {
+  font-size: 0.67rem;
+}
+
+.timeline-end {
+  position: relative;
+  text-align: center;
+  padding-top: 2rem;
+  margin-top: 0.5rem;
+}
+
+.timeline-end__arrow {
+  width: 18px;
+  height: 18px;
+  margin: 0 auto 0.8rem;
+  border-left: 2.5px solid var(--accent-soft);
+  border-bottom: 2.5px solid var(--accent-soft);
+  transform: rotate(-45deg);
+  opacity: 0.7;
+  animation: floatDown 2s ease-in-out infinite;
+}
+
+.timeline-end__text {
+  font-family: 'Inter', 'SF Pro Display', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-soft), #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+}
+
+@keyframes floatDown {
+  0%, 100% { transform: rotate(-45deg) translateY(0); opacity: 0.5; }
+  50% { transform: rotate(-45deg) translateY(6px); opacity: 1; }
+}
+
+/* Responsive timeline */
+@media (max-width: 860px) {
+  .timeline::before {
+    left: 1.25rem;
+  }
+
+  .timeline-card {
+    width: calc(100% - 3.5rem);
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    padding-left: 2.5rem !important;
+    padding-right: 0 !important;
+  }
+
+  .timeline-card__dot {
+    left: -2.15rem !important;
+    right: auto !important;
+  }
+
+  .timeline-card__inner:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* =========================
    RESPONSIVE
 ========================= */
 
