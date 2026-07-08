@@ -31,6 +31,12 @@
 
   --content-max: 1320px;
   --sidebar-width: clamp(240px, 24vw, 320px);
+
+  --tag-bg: rgba(22, 38, 58, 0.55);
+  --tag-border: rgba(255, 255, 255, 0.17);
+
+  --link-color: #b3d4f5;
+  --link-color-hover: #b3d9ff;
 }
 
 :root[data-theme='light'] {
@@ -48,12 +54,31 @@
 
   --shadow-soft: 0 12px 28px rgba(18, 30, 54, 0.12);
   --shadow-strong: 0 24px 46px rgba(18, 30, 54, 0.2);
+
+  --tag-bg: rgba(220, 232, 246, 0.7);
+  --tag-border: rgba(13, 27, 52, 0.15);
+
+  --link-color: #1a62c4;
+  --link-color-hover: #0d4a9e;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+a:not([class]),
+.contact-link {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition);
+}
+
+a:not([class]):hover,
+.contact-link:hover {
+  color: var(--link-color-hover);
 }
 
 body {
@@ -419,8 +444,8 @@ body:has(.left-sidebar) > footer {
   width: 100%;
   appearance: none;
   border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: rgba(30, 45, 66, 0.32);
+  border: 1px solid var(--tag-border);
+  background: var(--tag-bg);
   color: var(--text-primary);
   padding: 0.52rem 0.62rem;
   font-size: 0.85rem;
@@ -443,8 +468,8 @@ body:has(.left-sidebar) > footer {
 .filter-chip {
   padding: 0.24rem 0.62rem;
   border-radius: 999px;
-  border: 1px solid rgba(140, 168, 201, 0.38);
-  background: rgba(30, 45, 66, 0.4);
+  border: 1px solid var(--tag-border);
+  background: var(--tag-bg);
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.77rem;
@@ -552,9 +577,9 @@ body:has(.left-sidebar) > footer {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.69rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.17);
+  border: 1px solid var(--tag-border);
   color: var(--text-muted);
-  background: rgba(22, 38, 58, 0.55);
+  background: var(--tag-bg);
   padding: 0.15rem 0.52rem;
   letter-spacing: 0.03em;
 }
